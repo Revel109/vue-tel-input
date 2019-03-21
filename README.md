@@ -118,12 +118,18 @@ Read more on `vue-form-generator`'s [instruction page](https://icebob.gitbooks.i
   | `defaultCountry` | `string` | `''` | Default country, will override the country fetched from IP address of user |
   | `disabledFetchingCountry` | `Boolean` | false | Disable fetching current country based on IP address of user |
   | `disabled` | `Boolean` | `false` | Disable input field |
+  | `disabledFormatting` | `Boolean` | `false` | Disable formatting the phone number in the input, the formatted result still be accessible by `formattedNumber` returned from `onInput` event |
   | `placeholder` | `string` | Enter a phone number | Placeholder for the input |
   | `required` | `Boolean` | `false` | Required property for HTML5 required attribute |
+  | `enabledCountryCode` | `Boolean` | `false` | Enable country code in the input |
   | `enabledFlags` | `Boolean` | `true` | Enable flags in the input |
   | `preferredCountries` | `Array` | `[]` | Preferred countries list, will be on top of the dropdown. ie `['AU', 'BR']` |
   | `onlyCountries` | `Array` | `[]` | List of countries will be shown on the dropdown. ie `['AU', 'BR']` |
   | `ignoredCountries` | `Array` | `[]` | List of countries will NOT be shown on the dropdown. ie `['AU', 'BR']` |
+  | `autocomplete`| `String` | `'on'` | Native input 'autocomplete' attribute |
+  | `name`| `String` | `'telephone'` | Native input 'name' attribute |
+  | `inputClasses`| `String` | `''` | Custom classes for the `input` |
+  | `dropdownOptions`| `Object` | `{ disabledDialCode: false }` | Options for dropdown, supporting `disabledDialCode` |
 
 ### Events
 
@@ -138,7 +144,6 @@ Read more on `vue-form-generator`'s [instruction page](https://icebob.gitbooks.i
 - Telephone Number parsing, validation by [libphonenumber-js](https://catamphetamine.github.io/libphonenumber-js/).
 - Country Codes data from [intl-tel-input](https://github.com/jackocnr/intl-tel-input/blob/master/src/js/data.js).
 - Country Flags by [behdad/region-flags](https://github.com/behdad/region-flags).
-- [Boostrap-Vue](https://bootstrap-vue.js.org/docs/).
 - User's Location by [get-json](https://www.npmjs.com/package/get-json) and [ipifo.io](https://ipinfo.io/json)
 
 ## Demo Usage

@@ -11,6 +11,7 @@
     >
       <span class="selection">
         <div class="iti-flag" v-if="enabledFlags" :class="activeCountry.iso2.toLowerCase()"></div>
+        <span class="country-code" v-if="enabledCountryCode">+{{ activeCountry.dialCode }}</span>
         <span class="dropdown-arrow">{{ open ? '▲' : '▼' }}</span>
       </span>
       <ul v-show="open" ref="list">
@@ -24,7 +25,7 @@
         >
           <div class="iti-flag" v-if="enabledFlags" :class="pb.iso2.toLowerCase()"></div>
           <strong>{{ pb.name }}</strong>
-          <span>+{{ pb.dialCode }}</span>
+          <span v-if="dropdownOptions && !dropdownOptions.disabledDialCode">+{{ pb.dialCode }}</span>
         </li>
       </ul>
     </div>
@@ -36,19 +37,18 @@
       :state="state"
       :formatter="format"
       :disabled="disabled"
+      :required="required"
+      :autocomplete="autocomplete"
+      :name="name"
+      :class="inputClasses"
       @blur="onBlur"
       @input="onInput"
-      :required="required"
     >
   </div>
 </template>
 
 <style src="./assets/sprite.css"></style>
 <style scoped>
-:local {
-  --border-radius: 2px;
-}
-
 li.last-preferred {
   border-bottom: 1px solid #cacaca;
 }
@@ -72,13 +72,12 @@ li.last-preferred {
   text-align: left;
 }
 .vue-tel-input:focus-within {
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075),
-    0 0 8px rgba(102, 175, 233, 0.6);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
   border-color: #66afe9;
 }
 input {
   border: none;
-  border-radius: 0 var(--border-radius) var(--border-radius) 0;
+  border-radius: 0 2px 2px 0;
   width: 100%;
   outline: none;
   padding-left: 7px;
@@ -112,6 +111,9 @@ ul {
 }
 .dropdown:hover {
   background-color: #f3f3f3;
+}
+.country-code {
+  color: #666;
 }
 .dropdown-arrow {
   transform: scaleY(0.5);
@@ -159,6 +161,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    disabledFormatting: {
+      type: Boolean,
+      default: false,
+    },
     invalidMsg: {
       default: '',
       type: String,
@@ -172,6 +178,10 @@ export default {
       // Will override the current country of user
       type: String,
       default: '',
+    },
+    enabledCountryCode: {
+      type: Boolean,
+      default: false,
     },
     enabledFlags: {
       type: Boolean,
@@ -189,9 +199,32 @@ export default {
       type: Array,
       default: () => [],
     },
+    autocomplete: {
+      type: String,
+      default: 'on',
+    },
+    name: {
+      type: String,
+      default: 'telephone',
+    },
+    inputClasses: {
+      type: String,
+      default: '',
+    },
+    dropdownOptions: {
+      type: Object,
+      default: () => ({}),
+    },
+    selectedCountryCode: {
+      type: Boolean,
+      default: false,
+    },
   },
   mounted() {
     this.initializeCountry();
+    if (this.selectedCountryCode && this.activeCountry) {
+      this.phone = '+' + this.activeCountry.dialCode;
+    }
     this.$emit('onValidate', this.response);
   },
   created() {
@@ -229,7 +262,7 @@ export default {
       }
 
       if (this.ignoredCountries.length) {
-        return allCountries.filter(({ iso2 }) => 
+        return allCountries.filter(({ iso2 }) =>
           !this.ignoredCountries.includes(iso2.toUpperCase()) &&
           !this.ignoredCountries.includes(iso2.toLowerCase()))
       }
@@ -261,6 +294,9 @@ export default {
         // Ex: 0432421999
         phone = this.phone.slice(1);
       }
+      if (this.disabledFormatting) {
+        return this.phone;
+      }
 
       return formatNumber(phone, this.activeCountry && this.activeCountry.iso2, 'International');
     },
@@ -270,12 +306,18 @@ export default {
     response() {
       // If it is a valid number, returns the formatted value
       // Otherwise returns what it is
-      const number = this.state ? this.formattedResult : this.phone;
-      return {
-        number,
+      const response = {
+        number: this.state ? this.formattedResult : this.phone,
         isValid: this.state,
         country: this.activeCountry,
-      };
+      }
+      // If formatting to the input is disabled, try to return the formatted value to its parent
+      if (this.disabledFormatting) {
+        Object.assign(response, {
+          formattedNumber: formatNumber(this.phone, this.activeCountry && this.activeCountry.iso2, 'International')
+        })
+      }
+      return response;
     },
   },
   watch: {
@@ -339,6 +381,9 @@ export default {
     },
     choose(country) {
       this.activeCountry = country;
+      if (this.selectedCountryCode && country) {
+        this.phone = '+' + country.dialCode;
+      }
       this.$emit('onInput', this.response);
     },
     onInput() {
